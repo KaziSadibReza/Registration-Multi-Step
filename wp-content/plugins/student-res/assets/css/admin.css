@@ -1,0 +1,89 @@
+/* Admin Styles for Student Registration Plugin */
+.gm-admin-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.04);
+  margin-top: 12px;
+}
+
+.gm-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 12px;
+}
+
+.gm-filter select,
+.gm-filter input[type="text"] {
+  min-width: 160px;
+}
+
+.gm-table thead th {
+  background: #f8fafc;
+  font-weight: 700;
+}
+
+.gm-table td,
+.gm-table th {
+  padding: 10px 12px;
+}
+
+.gm-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 12px;
+}
+
+.gm-actions-cell a.button {
+  margin-right: 6px;
+}
+
+.gm-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
+}
+
+.gm-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.gm-modal.open {
+  display: flex;
+}
+
+.gm-modal-box {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 90vw;
+  max-height: 90vh;
+  padding: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.gm-modal-box img {
+  max-width: 85vw;
+  max-height: 80vh;
+  display: block;
+  background: #fff;
+}
+
+.gm-card-h {
+  margin: 16px 0 8px;
+  font-size: 18px;
+}

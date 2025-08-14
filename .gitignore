@@ -1,0 +1,39 @@
+wp-admin/
+wp-includes/
+*.php
+!wp-content/
+.htaccess
+license.txt
+readme.html
+
+# Keep wp-content but ignore cache and temporary folders
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/backup*/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+wp-content/litespeed/
+wp-content/webp-express/
+wp-content/.litespeed_conf.dat
+wp-content/languages/
+wp-content/themes/
+wp-content/upgrade-temp-backup
+wp-content/kadence-child.zip
+
+# Keep themes (including your Kadence child theme)
+!wp-content/plugins/
+wp-content/plugins/*
+!wp-content/plugins/student-res/
+!wp-content/plugins/student-res/**
+
+
+# Keep other important files
+!.gitignore
+
+
+# Ignore log files and temp files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
