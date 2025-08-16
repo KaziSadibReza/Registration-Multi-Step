@@ -126,7 +126,7 @@
   }
 
   function getMaxClasses() {
-    return needsTwo() ? 2 : 4; // Year 10-11: exactly 2, Year 1-9: max 4
+    return needsTwo() ? 2 : 2; // Year 10-11: exactly 2, Year 1-9: max 2
   }
 
   function renderSelected() {
@@ -144,7 +144,7 @@
     if (needsTwo()) {
       next2.disabled = selection.size !== 2;
     } else {
-      next2.disabled = selection.size < 1 || selection.size > 4;
+      next2.disabled = selection.size < 1 || selection.size > 2;
     }
   }
 
@@ -227,9 +227,9 @@
       // Years 10-11: must select exactly 2 classes
       return selection.size === 2 && signed && terms.checked;
     } else {
-      // Years 1-9: must select 1-4 classes
+      // Years 1-9: must select 1-2 classes
       return (
-        selection.size >= 1 && selection.size <= 4 && signed && terms.checked
+        selection.size >= 1 && selection.size <= 2 && signed && terms.checked
       );
     }
   }
@@ -377,12 +377,12 @@
         alert(
           `Year 10 and Year 11 students must select exactly 2 classes. You have selected ${classCount} classes.`
         );
-      } else if (!needsExactlyTwo && (classCount < 1 || classCount > 4)) {
+      } else if (!needsExactlyTwo && (classCount < 1 || classCount > 2)) {
         if (classCount < 1) {
           alert("Years 1-9 students must select at least 1 class.");
         } else {
           alert(
-            "Years 1-9 students can select a maximum of 4 classes. You have selected " +
+            "Years 1-9 students can select a maximum of 2 classes. You have selected " +
               classCount +
               " classes."
           );
