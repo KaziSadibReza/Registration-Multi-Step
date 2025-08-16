@@ -62,6 +62,14 @@
     if (locEl) locEl.textContent = loc;
     if (yrEl) yrEl.textContent = yr;
 
+    // Show/hide the year note based on year selection
+    const yearNote = document.getElementById("gm-year-note");
+    if (yearNote) {
+      const isYear10or11 =
+        yrSel && (yrSel.value === "Year 10" || yrSel.value === "Year 11");
+      yearNote.style.display = isYear10or11 ? "block" : "none";
+    }
+
     // Debug log to check if function is working
     console.log("updateKicker called - Location:", loc, "Year:", yr);
   }
@@ -109,13 +117,16 @@
   const selectedUl = document.getElementById("gm-selected-ul");
   const next2 = document.getElementById("gm-next-2");
   const selection = new Map();
-  const MAX = 2;
 
   function needsTwo() {
     const y = (
       document.querySelector('[name="year_group"]').value || ""
     ).toLowerCase();
     return y === "year 10" || y === "year 11";
+  }
+
+  function getMaxClasses() {
+    return needsTwo() ? 2 : 4; // Year 10-11: exactly 2, Year 1-9: max 4
   }
 
   function renderSelected() {
@@ -129,7 +140,12 @@
         selectedUl.appendChild(li);
       });
     }
-    next2.disabled = needsTwo() ? selection.size !== 2 : selection.size < 1;
+    // Update Next button state based on selection requirements
+    if (needsTwo()) {
+      next2.disabled = selection.size !== 2;
+    } else {
+      next2.disabled = selection.size < 1 || selection.size > 4;
+    }
   }
 
   // Class card click handlers
@@ -150,7 +166,7 @@
         return;
       }
 
-      if (selection.size >= MAX) {
+      if (selection.size >= getMaxClasses()) {
         // Shake animation for max selection
         this.style.animation = "gmShake .2s linear";
         setTimeout(() => (this.style.animation = ""), 200);
@@ -207,11 +223,15 @@
   let signed = false;
 
   function validForSubmit() {
-    return (
-      (needsTwo() ? selection.size === 2 : selection.size >= 1) &&
-      signed &&
-      terms.checked
-    );
+    if (needsTwo()) {
+      // Years 10-11: must select exactly 2 classes
+      return selection.size === 2 && signed && terms.checked;
+    } else {
+      // Years 1-9: must select 1-4 classes
+      return (
+        selection.size >= 1 && selection.size <= 4 && signed && terms.checked
+      );
+    }
   }
 
   function updateSubmit() {
@@ -357,8 +377,16 @@
         alert(
           `Year 10 and Year 11 students must select exactly 2 classes. You have selected ${classCount} classes.`
         );
-      } else if (!needsExactlyTwo && classCount < 1) {
-        alert("Please select at least 1 class.");
+      } else if (!needsExactlyTwo && (classCount < 1 || classCount > 4)) {
+        if (classCount < 1) {
+          alert("Years 1-9 students must select at least 1 class.");
+        } else {
+          alert(
+            "Years 1-9 students can select a maximum of 4 classes. You have selected " +
+              classCount +
+              " classes."
+          );
+        }
       } else if (!signed) {
         alert("Please provide your signature.");
       } else if (!terms.checked) {

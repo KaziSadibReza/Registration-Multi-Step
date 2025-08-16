@@ -150,8 +150,9 @@ class GM_Frontend {
                         Location: <strong id="gm-kicker-location">—</strong> |
                         Year: <strong id="gm-kicker-year">—</strong>
                     </div>
-                    <div class="gm-note"><strong>Note:</strong> Years 10–11 students must select <strong>2 days</strong>
-                        of attendance.</div>
+                    <div class="gm-note" id="gm-year-note" style="display: none;"><strong>Note:</strong> Years 10-11
+                        students must select <strong>2
+                            days</strong> of attendance.</div>
                 </div>
 
                 <div class="gm-classes">
