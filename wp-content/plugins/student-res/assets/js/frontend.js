@@ -6,11 +6,23 @@
 (function () {
   "use strict";
 
+  // Check if the registration form exists on this page
+  const form = document.getElementById("gm-form");
+  if (!form) {
+    return; // Exit early if form doesn't exist
+  }
+
   // DOM elements
   const panes = document.querySelectorAll(".gm-step-pane");
   const bar = document.getElementById("gm-progress-bar");
-  const stepper = document.getElementById("gm-stepper").children;
-  const form = document.getElementById("gm-form");
+  const stepperElement = document.getElementById("gm-stepper");
+  const stepper = stepperElement ? stepperElement.children : [];
+
+  // Early exit if essential elements are missing
+  if (!stepperElement || !bar) {
+    console.warn("GM Registration: Required DOM elements not found");
+    return;
+  }
 
   // Step navigation
   function go(step) {
@@ -204,9 +216,46 @@
 
   function updateSubmit() {
     submitBtn.disabled = !validForSubmit();
+
+    // Update submit button text and payment note based on payment method
+    const paymentMethod = document.querySelector(
+      'input[name="payment_method"]:checked'
+    );
+    const paymentNote = document.getElementById("gm-payment-note");
+
+    if (paymentMethod && paymentMethod.value === "cash") {
+      submitBtn.textContent = "Complete Registration";
+      if (paymentNote) {
+        paymentNote.textContent =
+          "Your registration will be submitted as pending. Payment is due on your first attendance.";
+      }
+    } else {
+      submitBtn.textContent = "Proceed to Payment";
+      if (paymentNote) {
+        paymentNote.textContent =
+          "You will be redirected to our secure online payment gateway to complete your registration.";
+      }
+    }
   }
 
   terms.addEventListener("change", updateSubmit);
+
+  // Payment method change handler
+  const paymentMethods = document.querySelectorAll(
+    'input[name="payment_method"]'
+  );
+  paymentMethods.forEach((method) => {
+    method.addEventListener("change", function () {
+      // Update visual selection
+      document
+        .querySelectorAll(".gm-method")
+        .forEach((m) => m.classList.remove("selected"));
+      this.closest(".gm-method").classList.add("selected");
+
+      // Update submit button and note
+      updateSubmit();
+    });
+  });
 
   // Signature Canvas Implementation
   const canvas = document.getElementById("gm-sign-canvas");
@@ -352,6 +401,15 @@
     cls.forEach((o) => (total += parseFloat(o.price || 0)));
 
     function q(n) {
+      if (n === "payment_method") {
+        const checkedEl = document.querySelector('[name="' + n + '"]:checked');
+        console.log("Payment method debug - checked element:", checkedEl);
+        console.log(
+          "Payment method debug - value:",
+          checkedEl ? checkedEl.value : "none"
+        );
+        return checkedEl ? checkedEl.value : "";
+      }
       const el = document.querySelector('[name="' + n + '"]');
       return el ? el.value : "";
     }
@@ -370,7 +428,7 @@
       year_group: q("year_group"),
       classes: JSON.stringify(cls),
       monthly_total: total.toFixed(2),
-      payment_method: "online",
+      payment_method: q("payment_method"),
       accepted_terms: "1",
       signature_data: "",
     };
@@ -381,6 +439,7 @@
     console.log("Classes JSON:", JSON.stringify(cls));
     console.log("Number of selected classes:", cls.length);
     console.log("Year group:", q("year_group"));
+    console.log("Payment method value:", q("payment_method"));
     console.log("Needs two classes:", needsTwo());
 
     try {
@@ -425,11 +484,23 @@
       // Debug WooCommerce integration
       const responseData = data.data || data; // Handle wp_send_json_success wrapper
       console.log("Full Response:", data);
+      console.log("Payment Method:", q("payment_method"));
       console.log("WooCommerce Order ID:", responseData.wc_order_id);
       console.log("Checkout URL:", responseData.checkout_url);
       console.log("WooCommerce Error:", responseData.wc_error);
       console.log("WooCommerce Debug Info:", responseData.wc_debug);
 
+      // Handle cash payment
+      if (q("payment_method") === "cash") {
+        alert(
+          "Registration submitted successfully! Your registration is pending and payment is due on your first attendance. You will receive a confirmation email shortly."
+        );
+        // Optionally redirect to a success page or reload
+        location.reload();
+        return;
+      }
+
+      // Handle online payment (existing logic)
       if (responseData.checkout_url) {
         console.log(
           "Redirecting to WooCommerce checkout:",
@@ -478,12 +549,37 @@
           (err && err.message ? err.message : "Network/Server error")
       );
       submitBtn.disabled = false;
-      submitBtn.textContent = "Proceed to Payment";
+      const paymentMethod = q("payment_method");
+      submitBtn.textContent =
+        paymentMethod === "cash"
+          ? "Complete Registration"
+          : "Proceed to Payment";
     }
   });
 
   // Initialize form
   go(1);
+
+  // Initialize payment method selection when DOM is ready
+  function initializePaymentMethods() {
+    // Set initial selection state for the checked radio button
+    const checkedMethod = document.querySelector(
+      'input[name="payment_method"]:checked'
+    );
+    if (checkedMethod) {
+      checkedMethod.closest(".gm-method").classList.add("selected");
+    }
+
+    // Update submit button text and note based on initial selection
+    setTimeout(updateSubmit, 100); // Small delay to ensure DOM is ready
+  }
+
+  // Initialize payment methods when page loads
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializePaymentMethods);
+  } else {
+    initializePaymentMethods();
+  }
 
   // Make resizeCanvas globally available for step 3
   window.resizeCanvas = resizeCanvas;

@@ -167,7 +167,7 @@ class GM_Admin {
         </tr></thead><tbody>';
 
         foreach ($rows as $r) {
-            $labelMethod = 'WooCommerce';
+            $labelMethod = ($r->payment_method === 'cash') ? 'Cash' : 'WooCommerce';
             $labelStatus = ucfirst($r->payment_status ?: 'pending');
             $payLabel = $labelMethod . ' – ' . $labelStatus;
             
@@ -292,14 +292,16 @@ class GM_Admin {
         echo '<table class="widefat striped"><tbody>';
         
         $out = function($k, $v) { echo '<tr><th>' . esc_html($k) . '</th><td>' . wp_kses_post($v) . '</td></tr>'; };
-        $out('Method', 'Online (WooCommerce)');
+        $payment_method_label = ($row->payment_method === 'cash') ? 'Cash Payment' : 'Online (WooCommerce)';
+        $out('Method', $payment_method_label);
 
+        $auto_update_note = ($row->payment_method === 'cash') ? 'Manual update required for cash payments' : 'Auto-updated by WooCommerce';
         echo '<tr><th>Status</th><td><select name="gm_payment_status">
             <option value="pending" ' . selected($row->payment_status, 'pending', false) . '>Pending</option>
             <option value="paid" ' . selected($row->payment_status, 'paid', false) . '>Paid</option>
             <option value="hold" ' . selected($row->payment_status, 'hold', false) . '>Hold</option>
             <option value="cancel" ' . selected($row->payment_status, 'cancel', false) . '>Cancel</option>
-        </select> <span class="gm-tag">Auto-updated by WooCommerce</span></td></tr>';
+        </select> <span class="gm-tag">' . $auto_update_note . '</span></td></tr>';
         
         if ($row->payment_provider === 'woocommerce' && !empty($row->payment_trx)) {
             $wc_order_url = $this->woocommerce->get_order_admin_url($row->payment_trx);

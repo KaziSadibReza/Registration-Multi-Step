@@ -209,9 +209,21 @@ class GM_Frontend {
 
                 <div class="gm-card">
                     <h3 style="text-align:center;">Payment Method</h3>
-                    <input type="hidden" name="payment_method" value="online">
-                    <div class="gm-note" style="text-align:center; margin-top: 14px;">You will be redirected to our
-                        secure online payment gateway to complete your registration.</div>
+                    <div class="gm-methods" id="gm-methods">
+                        <label class="gm-method" data-method="online">
+                            <input type="radio" name="payment_method" value="online" style="accent-color:#20d3d2;"
+                                checked>
+                            <div><strong>Online Payment</strong><small style="display:block;color:#6b7280;">Pay securely
+                                    with woocommerce</small></div>
+                        </label>
+                        <label class="gm-method" data-method="cash">
+                            <input type="radio" name="payment_method" value="cash" style="accent-color:#20d3d2;">
+                            <div><strong>Cash Payment</strong><small style="display:block;color:#6b7280;">Pay on first
+                                    attendance</small></div>
+                        </label>
+                    </div>
+                    <div class="gm-payment-note" id="gm-payment-note" style="text-align:center; margin-top: 14px;">You
+                        will be redirected to our secure online payment gateway to complete your registration.</div>
                 </div>
 
                 <div class="gm-card">
@@ -333,10 +345,22 @@ class GM_Frontend {
             // Send notification email
             $this->send_notification_email($insert_id, $data);
 
-            // Create WooCommerce order
+            // Create WooCommerce order only for online payments
             $response_data = array('success' => true, 'id' => $insert_id, 'order_code' => $order_code);
             
-            // Debug: Check WooCommerce availability
+            $payment_method = sanitize_text_field($data['payment_method'] ?? 'online');
+            
+            // Debug log for payment method
+            error_log('GM: Payment method received: ' . $payment_method);
+            
+            if ($payment_method === 'cash') {
+                // For cash payments, just return success without creating WooCommerce order
+                error_log('GM: Cash payment detected, skipping WooCommerce order creation');
+                wp_send_json_success($response_data);
+                return;
+            }
+            
+            // Debug: Check WooCommerce availability for online payments
             $wc_debug = array(
                 'wc_class_exists' => class_exists('WooCommerce'),
                 'wc_create_order_exists' => function_exists('wc_create_order'),
@@ -435,6 +459,7 @@ class GM_Frontend {
         
         $code = $this->db->generate_order_code();
         $classes_json = !empty($data['classes']) ? wp_json_encode($data['classes']) : '[]';
+        $payment_method = sanitize_text_field($data['payment_method'] ?? 'online');
 
         $result = $wpdb->insert(
             $this->db->get_table_name(),
@@ -452,7 +477,7 @@ class GM_Frontend {
                 'year_group'         => sanitize_text_field($data['year_group']),
                 'classes_json'       => $classes_json,
                 'monthly_total'      => floatval($data['monthly_total']),
-                'payment_method'     => 'online',
+                'payment_method'     => $payment_method,
                 'payment_status'     => 'pending',
                 'payment_amount'     => floatval($data['monthly_total']),
                 'reg_status'         => 'pending',
@@ -506,6 +531,8 @@ class GM_Frontend {
      * Build email HTML
      */
     private function build_email_html($row, $data, $rows, $total) {
+        $payment_method_text = ($row->payment_method === 'cash') ? 'Cash Payment (Due on first attendance)' : 'Online Payment (WooCommerce)';
+        
         $html = '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#111">';
         $html .= '<h2 style="margin:0 0 10px;">New Registration (#'.esc_html($row->order_code).')</h2>';
         $html .= '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:10px 0;width:100%;">';
@@ -519,7 +546,7 @@ class GM_Frontend {
         $html .= '<h3 style="margin:12px 0 6px;">Selected Classes</h3>';
         $html .= '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;">'.$rows.'</table>';
         $html .= '<p style="text-align:right;"><strong>Monthly Total:</strong> £'.$total.'</p>';
-        $html .= '<p><strong>Payment Method:</strong> Online Payment (WooCommerce)</p>';
+        $html .= '<p><strong>Payment Method:</strong> '.$payment_method_text.'</p>';
         if ($row->signature_url) $html .= '<p><strong>Signature:</strong> <a href="'.esc_url($row->signature_url).'" target="_blank">View</a></p>';
         $html .= '</div>';
 
